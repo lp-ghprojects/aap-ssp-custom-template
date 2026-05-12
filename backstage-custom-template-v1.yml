@@ -1,0 +1,342 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+
+metadata:
+  name: vpn-survey-dynamic
+  title: "L3VPN provisioning dynamic form"
+  description: >
+    Collects VPN parameters. Selecting a VPN type reveals the relevant
+    fields for that branch.
+  tags:
+    - ansible
+    - vpn
+    - self-service
+
+spec:
+  owner: platform-team
+  type: service
+
+  parameters:
+    # ── Step 2: Base parameters (always shown) ─────────────────────────────────
+    - title: "Device & action details"
+      required:
+        - CCSD
+        - device_id
+        - action_type
+        - interface
+      properties:
+        CCSD:
+          title: "CCSD"
+          type: string
+          description: "Customer circuit service descriptor"
+
+        device_id:
+          title: "Device ID"
+          type: string
+          description: "Target device identifier"
+
+        action_type:
+          title: "Action type"
+          type: string
+          description: "Select the operation to perform"
+          enum:
+            - start
+            - change
+            - discontinue
+          enumNames:
+            - Start
+            - Change
+            - Discontinue
+
+        interface:
+          title: "Interface"
+          type: string
+          description: "Network interface name (e.g. GigabitEthernet0/1)"
+
+    # ── Step 3: VPN configuration ──────────────────────────────────────────────
+    - title: "VPN configuration"
+      required:
+        - vpn_type
+      properties:
+        vpn_type:
+          title: "VPN type"
+          type: string
+          description: "Select VPN type"
+          enum:
+            - niprvrf
+            - pisp
+            - coi
+            - regular
+          enumNames:
+            - "Niprvrf"
+            - "Pisp"
+            - "Coi"
+            - "Regular"
+
+      dependencies:
+        vpn_type:
+          oneOf:
+
+            # ── vpn_type = n ───────────────────────────────────────────────────
+            - properties:
+                vpn_type:
+                  enum:
+                    - niprvrf
+
+                protocol_type:
+                  title: "Service protocol"
+                  type: string
+                  description: "Select the service protocol"
+                  enum:
+                    - bgp
+                    - static
+                    - none
+                  enumNames:
+                    - "BGP"
+                    - "Static"
+                    - "None"
+                  default: none
+
+                pe_ip_address:
+                  title: "PE IP address"
+                  type: string
+                  description: "Provider edge IP address"
+
+              required:
+                - protocol_type
+                - pe_ip_address
+
+            # ── vpn_type = p ───────────────────────────────────────────────────
+            - properties:
+                vpn_type:
+                  enum:
+                    - pisp
+
+                mtu_type:
+                  title: "MTU type"
+                  type: string
+                  description: "Select MTU type"
+                  enum:
+                    - default
+                    - jumbo
+                    - other
+                  enumNames:
+                    - "Default"
+                    - "Jumbo"
+                    - "Other"
+                  default: default
+
+                protocol_type:
+                  title: "Service protocol"
+                  type: string
+                  description: "Select the service protocol"
+                  enum:
+                    - bgp
+                    - static
+                    - none
+                  enumNames:
+                    - "BGP"
+                    - "Static"
+                    - "None"
+                  default: none
+
+                pe_ip_address:
+                  title: "PE IP address"
+                  type: string
+                  description: "Provider edge IP address"
+
+              required:
+                - mtu_type
+                - protocol_type
+                - pe_ip_address
+
+              dependencies:
+                mtu_type:
+                  oneOf:
+                    - properties:
+                        mtu_type:
+                          enum:
+                            - default
+                            - jumbo
+                    - properties:
+                        mtu_type:
+                          enum:
+                            - other
+                        mtu_value:
+                          title: "MTU value"
+                          type: integer
+                          description: "Enter the MTU value"
+                          minimum: 1
+                      required:
+                        - mtu_value
+
+            # ── vpn_type = c ───────────────────────────────────────────────────
+            - properties:
+                vpn_type:
+                  enum:
+                    - coi
+
+                mtu_type:
+                  title: "MTU type"
+                  type: string
+                  description: "Select MTU type"
+                  enum:
+                    - default
+                    - jumbo
+                    - other
+                  enumNames:
+                    - "Default"
+                    - "Jumbo"
+                    - "Other"
+                  default: default
+
+                protocol_type:
+                  title: "Service protocol"
+                  type: string
+                  description: "Select the service protocol"
+                  enum:
+                    - bgp
+                    - static
+                    - none
+                  enumNames:
+                    - "BGP"
+                    - "Static"
+                    - "None"
+                  default: none
+
+                pe_ip_address:
+                  title: "PE IP address"
+                  type: string
+                  description: "Provider edge IP address"
+
+              required:
+                - mtu_type
+                - protocol_type
+                - pe_ip_address
+
+              dependencies:
+                mtu_type:
+                  oneOf:
+                    - properties:
+                        mtu_type:
+                          enum:
+                            - default
+                            - jumbo
+                    - properties:
+                        mtu_type:
+                          enum:
+                            - other
+                        mtu_value:
+                          title: "MTU value"
+                          type: integer
+                          description: "Enter the MTU value"
+                          minimum: 1
+                      required:
+                        - mtu_value
+
+            # ── vpn_type = regular ─────────────────────────────────────────────
+            - properties:
+                vpn_type:
+                  enum:
+                    - regular
+
+                vpn_id:
+                  title: "VPN ID"
+                  type: string
+                  description: "Enter the VPN identifier"
+                  minLength: 1
+
+                mtu_type:
+                  title: "MTU type"
+                  type: string
+                  description: "Select MTU type"
+                  enum:
+                    - default
+                    - jumbo
+                    - other
+                  enumNames:
+                    - "Default"
+                    - "Jumbo"
+                    - "Other"
+                  default: default
+
+                protocol_type:
+                  title: "Service protocol"
+                  type: string
+                  description: "Select the service protocol"
+                  enum:
+                    - bgp
+                    - static
+                    - none
+                  enumNames:
+                    - "BGP"
+                    - "Static"
+                    - "None"
+                  default: none
+
+                pe_ip_address:
+                  title: "PE IP address"
+                  type: string
+                  description: "Provider edge IP address"
+
+              required:
+                - vpn_id
+                - mtu_type
+                - protocol_type
+                - pe_ip_address
+
+              dependencies:
+                mtu_type:
+                  oneOf:
+                    - properties:
+                        mtu_type:
+                          enum:
+                            - default
+                            - jumbo
+                    - properties:
+                        mtu_type:
+                          enum:
+                            - other
+                        mtu_value:
+                          title: "MTU value"
+                          type: integer
+                          description: "Enter the MTU value"
+                          minimum: 1
+                      required:
+                        - mtu_value
+
+  steps:
+    - id: launch-vpn-job
+      name: Launch VPN playbook in AAP
+      action: rhaap:launch-job-template
+      input:
+        token: ${{ secrets.aapToken }}
+        values:
+          template: AAP-SSP Demo Template
+          jobType: run
+          timeout: 300
+          extraVariables:
+            CCSD: ${{ parameters.CCSD }}
+            device_id: ${{ parameters.device_id }}
+            action_type: ${{ parameters.action_type }}
+            interface: ${{ parameters.interface }}
+            vpn_type: ${{ parameters.vpn_type }}
+            protocol_type: ${{ [parameters.protocol_type] if parameters.vpn_type == 'regular' else [] }}
+            pe_ip_address: ${{ parameters.pe_ip_address }}
+            mtu_type: ${{ parameters.mtu_type if parameters.vpn_type in ['pisp', 'coi', 'regular'] else '' }}
+            mtu_value: ${{ parameters.mtu_value if parameters.vpn_type in ['pisp', 'coi', 'regular'] and parameters.mtu_type == 'other' else '' }}
+            vpn_id: ${{ parameters.vpn_id if parameters.vpn_type == 'regular' else '' }}
+
+  output:
+    text:
+      - title: Submission summary
+        content: |
+          **VPN type:** ${{ parameters.vpn_type }}
+          **Device:** ${{ parameters.device_id }}
+          **Action:** ${{ parameters.action_type }}
+          **Service protocol:** ${{ parameters.protocol_type }}
+          **PE IP:** ${{ parameters.pe_ip_address }}
+          **Interface:** ${{ parameters.interface }}
+          ${{ parameters.mtu_type ? '**MTU type:** ' + parameters.mtu_type : '' }}
+          ${{ parameters.mtu_value ? '**MTU value:** ' + parameters.mtu_value : '' }}
+          ${{ parameters.vpn_id ? '**VPN ID:** ' + parameters.vpn_id : '' }}
