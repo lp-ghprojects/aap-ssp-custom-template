@@ -3,7 +3,7 @@ kind: Template
 
 metadata:
   name: vpn-survey-dynamic
-  title: "L3VPN provisioning dynamic form"
+  title: "L3VPN provisioning dynamic custom form"
   description: >
     Collects VPN parameters. Selecting a VPN type reveals the relevant
     fields for that branch.
