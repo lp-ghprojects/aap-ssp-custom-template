@@ -47,7 +47,6 @@ spec:
             request_id: ${{ parameters.request_id }}
             decision: ${{ parameters.decision }}
             comment: ${{ parameters.comment }}
-            artifacts_dir: /tmp/vpn-ssp-mini
 
   output:
     text:
@@ -56,3 +55,5 @@ spec:
           Request ID: ${{ parameters.request_id }}
           Decision: ${{ parameters.decision }}
           Comment: ${{ parameters.comment }}
+
+          The AAP job prints the apply result directly in the job output.
