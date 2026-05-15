@@ -1,0 +1,76 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+
+metadata:
+  name: vpn-dry-run-request-mini
+  title: VPN dry-run request
+  description: Collect a small set of inputs and launch an AAP dry-run job.
+  tags:
+    - ansible
+    - vpn
+    - self-service
+
+spec:
+  owner: platform-team
+  type: service
+
+  parameters:
+    - title: VPN request
+      required:
+        - ccsd
+        - device_id
+        - action
+        - vpn_type
+      properties:
+        ccsd:
+          title: CCSD
+          type: string
+          minLength: 4
+        device_id:
+          title: Device ID
+          type: string
+        action:
+          title: Action
+          type: string
+          enum:
+            - start
+            - change
+            - discontinue
+        vpn_type:
+          title: VPN type
+          type: string
+          enum:
+            - regular
+            - pisp
+            - coi
+            - niprvrf
+
+  steps:
+    - id: launch-dry-run
+      name: Launch dry-run in AAP
+      action: rhaap:launch-job-template
+      input:
+        token: ${{ secrets.aapToken }}
+        values:
+          template: VPN Dry Run
+          jobType: run
+          timeout: 300
+          extraVariables:
+            request_id: ${{ parameters.ccsd }}-${{ parameters.device_id }}-${{ parameters.action }}-${{ parameters.vpn_type }}
+            ccsd: ${{ parameters.ccsd }}
+            device_id: ${{ parameters.device_id }}
+            action: ${{ parameters.action }}
+            vpn_type: ${{ parameters.vpn_type }}
+            artifacts_dir: /tmp/vpn-ssp-mini
+
+  output:
+    text:
+      - title: Dry-run submitted
+        content: |
+          Request submitted.
+          CCSD: ${{ parameters.ccsd }}
+          Device ID: ${{ parameters.device_id }}
+          Action: ${{ parameters.action }}
+          VPN Type: ${{ parameters.vpn_type }}
+          
+          Check the AAP job output for the dry-run summary.

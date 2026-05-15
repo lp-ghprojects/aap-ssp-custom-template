@@ -1,0 +1,72 @@
+---
+- name: Simulated VPN dry-run
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    artifacts_dir: "{{ artifacts_dir | default('/tmp/vpn-ssp-mini') }}"
+    request_id: "{{ request_id | default(ccsd ~ '-' ~ device_id ~ '-' ~ action ~ '-' ~ vpn_type) }}"
+    request_dir: "{{ artifacts_dir }}/{{ request_id }}"
+    dry_run_txt: "{{ request_dir }}/dry_run.txt"
+    dry_run_json: "{{ request_dir }}/dry_run.json"
+
+  tasks:
+    - name: Ensure output directory exists
+      ansible.builtin.file:
+        path: "{{ request_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Write dry-run text output
+      ansible.builtin.copy:
+        dest: "{{ dry_run_txt }}"
+        mode: '0644'
+        content: |
+          ==================================
+          VPN DRY-RUN RESULT
+          ==================================
+          Request ID : {{ request_id }}
+          CCSD       : {{ ccsd }}
+          Device ID  : {{ device_id }}
+          Action     : {{ action }}
+          VPN Type   : {{ vpn_type }}
+
+          Proposed Changes
+          ----------------
+          - Validate request
+          - Build simulated config
+          - Prepare change for {{ device_id }}
+
+          STATUS: DRY-RUN SUCCESSFUL
+
+    - name: Write dry-run JSON output
+      ansible.builtin.copy:
+        dest: "{{ dry_run_json }}"
+        mode: '0644'
+        content: |
+          {
+            "request_id": "{{ request_id }}",
+            "status": "dry_run_complete",
+            "ccsd": "{{ ccsd }}",
+            "device_id": "{{ device_id }}",
+            "action": "{{ action }}",
+            "vpn_type": "{{ vpn_type }}",
+            "artifacts": {
+              "text": "{{ dry_run_txt }}",
+              "json": "{{ dry_run_json }}"
+            }
+          }
+
+    - name: Show dry-run summary
+      ansible.builtin.debug:
+        msg: |
+          ==================================
+          VPN DRY-RUN RESULT
+          ==================================
+          Request ID : {{ request_id }}
+          CCSD       : {{ ccsd }}
+          Device ID  : {{ device_id }}
+          Action     : {{ action }}
+          VPN Type   : {{ vpn_type }}
+          Output     : {{ dry_run_txt }}

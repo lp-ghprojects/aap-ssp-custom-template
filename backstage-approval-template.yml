@@ -1,0 +1,58 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+
+metadata:
+  name: vpn-approval-request-mini
+  title: VPN approval request
+  description: Approve or reject a previously submitted dry-run request.
+  tags:
+    - ansible
+    - vpn
+    - approval
+
+spec:
+  owner: platform-team
+  type: service
+
+  parameters:
+    - title: Approval
+      required:
+        - request_id
+        - decision
+      properties:
+        request_id:
+          title: Request ID
+          type: string
+        decision:
+          title: Decision
+          type: string
+          enum:
+            - approve
+            - reject
+        comment:
+          title: Comment
+          type: string
+
+  steps:
+    - id: launch-apply
+      name: Launch apply in AAP
+      action: rhaap:launch-job-template
+      input:
+        token: ${{ secrets.aapToken }}
+        values:
+          template: VPN Apply
+          jobType: run
+          timeout: 300
+          extraVariables:
+            request_id: ${{ parameters.request_id }}
+            decision: ${{ parameters.decision }}
+            comment: ${{ parameters.comment }}
+            artifacts_dir: /tmp/vpn-ssp-mini
+
+  output:
+    text:
+      - title: Approval submitted
+        content: |
+          Request ID: ${{ parameters.request_id }}
+          Decision: ${{ parameters.decision }}
+          Comment: ${{ parameters.comment }}
