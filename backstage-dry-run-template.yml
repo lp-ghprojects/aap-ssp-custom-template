@@ -61,7 +61,6 @@ spec:
             device_id: ${{ parameters.device_id }}
             action: ${{ parameters.action }}
             vpn_type: ${{ parameters.vpn_type }}
-            artifacts_dir: /tmp/vpn-ssp-mini
 
   output:
     text:
@@ -72,5 +71,5 @@ spec:
           Device ID: ${{ parameters.device_id }}
           Action: ${{ parameters.action }}
           VPN Type: ${{ parameters.vpn_type }}
-          
-          Check the AAP job output for the dry-run summary.
+
+          The AAP job prints the dry-run summary directly in the job output.
