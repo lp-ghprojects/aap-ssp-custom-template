@@ -5,22 +5,11 @@
   gather_facts: false
 
   vars:
-    artifacts_dir: "{{ artifacts_dir | default('/tmp/vpn-ssp-mini') }}"
-    request_dir: "{{ artifacts_dir }}/{{ request_id }}"
-    dry_run_txt: "{{ request_dir }}/dry_run.txt"
-    apply_txt: "{{ request_dir }}/apply.txt"
+    request_id: "{{ request_id | default('not provided') }}"
+    decision: "{{ decision | default('reject') }}"
+    comment: "{{ comment | default('') }}"
 
   tasks:
-    - name: Check dry-run artifact exists
-      ansible.builtin.stat:
-        path: "{{ dry_run_txt }}"
-      register: dry_run_file
-
-    - name: Stop if dry-run is missing
-      ansible.builtin.fail:
-        msg: "Dry-run output not found for request_id={{ request_id }}"
-      when: not dry_run_file.stat.exists
-
     - name: Show approval decision
       ansible.builtin.debug:
         msg: |
@@ -29,32 +18,30 @@
           ==================================
           Request ID : {{ request_id }}
           Decision   : {{ decision }}
-          Comment    : {{ comment | default('') }}
+          Comment    : {{ comment }}
 
-    - name: Write apply result text
-      ansible.builtin.copy:
-        dest: "{{ apply_txt }}"
-        mode: '0644'
-        content: |
+    - name: Simulate apply when approved
+      ansible.builtin.debug:
+        msg: |
           ==================================
           VPN APPLY RESULT
           ==================================
           Request ID : {{ request_id }}
           Decision   : {{ decision }}
-          Comment    : {{ comment | default('') }}
-
-          {% if decision == 'approve' %}
+          Comment    : {{ comment }}
           STATUS: APPLY SUCCESSFUL
           Config push simulated.
-          {% else %}
-          STATUS: REJECTED
-          No changes were applied.
-          {% endif %}
+      when: decision == 'approve'
 
-    - name: Simulate apply when approved
+    - name: Simulate rejection when not approved
       ansible.builtin.debug:
         msg: |
-          APPLY COMPLETE
+          ==================================
+          VPN APPLY RESULT
+          ==================================
           Request ID : {{ request_id }}
-          Output     : {{ apply_txt }}
-      when: decision == 'approve'
+          Decision   : {{ decision }}
+          Comment    : {{ comment }}
+          STATUS: REJECTED
+          No changes were applied.
+      when: decision != 'approve'
